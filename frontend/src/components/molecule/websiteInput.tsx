@@ -1,5 +1,5 @@
 import React, { useState, ChangeEvent } from 'react';
-import { Input } from '../input';
+import { Input } from '../ui/input';
 
 interface WebsiteInputProps {
     title: string;
