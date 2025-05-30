@@ -42,7 +42,7 @@ const steps = [
 export default function Home() {
   const [website, setWebsite] = useState('');
   return (
-    <div className="flex flex-col gap-4 px-6 py-6">
+    <div className="flex flex-col gap-4 p-6">
       <Stepper steps={steps} status={2} />
       <SuiteComponent icon={File} title="Summary" amount="1-2 pages" description="It will create a summary proposal for you" />
       <Breadcrumb>
@@ -67,12 +67,10 @@ export default function Home() {
           Send Email
         </Button>
 
-        {/* Action Button with end icon */}
         <Button variant="secondary" endIcon={<ArrowRight />}>
           Continue
         </Button>
 
-        {/* Button with both icons */}
         <Button variant="outline" startIcon={<Github />} endIcon={<ArrowRight />}>
           Login with Github
         </Button>

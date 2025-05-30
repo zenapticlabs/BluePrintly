@@ -10,16 +10,13 @@ const compat = new FlatCompat({
 });
 
 const eslintConfig = [
-  ...compat.extends("next/core-web-vitals", "next/typescript"),
-  {
+  ...compat.config({
+    extends: ['next'],
     rules: {
-      // Disable rules by setting them to "off" or 0
-      "@next/next/no-img-element": "off",
-      "@next/next/no-html-link-for-pages": "off",
-      // You can also set rules to warn instead of error using "warn" or 1
-      "react/no-unescaped-entities": "warn",
+      'react/no-unescaped-entities': 'off',
+      '@next/next/no-page-custom-font': 'off',
     },
-  },
-];
+  }),
+]
 
 export default eslintConfig;
