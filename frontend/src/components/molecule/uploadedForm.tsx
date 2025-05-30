@@ -4,16 +4,12 @@ import { useDropzone } from "react-dropzone";
 import UploadedFileComponent from "./uploadedFileComponent";
 
 interface UploadedFormProps {
-    title?: string;
-    subtitle?: string;
     onFileUpload?: (file: File) => void;
     acceptedFileTypes?: string[];
     maxSize?: number;
 }
 
 const UploadedForm: React.FC<UploadedFormProps> = ({
-    title = "Upload Proposal Files",
-    subtitle = "Update your company logo and then choose where you want it to display.",
     onFileUpload,
     maxSize = 5242880, // 5MB default
 }) => {
@@ -52,9 +48,6 @@ const UploadedForm: React.FC<UploadedFormProps> = ({
 
     return (
         <div className="w-full">
-            <h2 className="text-lg font-semibold text-slate-900 mb-1">{title}</h2>
-            <p className="text-sm text-slate-600 mb-4">{subtitle}</p>
-
             <div
                 {...getRootProps()}
                 className={`
@@ -69,28 +62,20 @@ const UploadedForm: React.FC<UploadedFormProps> = ({
                 `}
             >
                 <input {...getInputProps()} type="file" className="hidden" />
-                {uploadedFile ? (
-                    <UploadedFileComponent
-                        fileName={uploadedFile.name}
-                        fileSize={formatFileSize(uploadedFile.size)}
-                        checked={true}
-                    />
-                ) : (
-                    <>
-                        <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mb-4">
-                            <UploadCloud className="w-6 h-6 text-slate-600" />
+                <>
+                    <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mb-4">
+                        <UploadCloud className="w-6 h-6 text-slate-600" />
+                    </div>
+                    <div className="text-center">
+                        <div className="flex gap-1 items-end">
+                            <span className="text-primary font-bold">Click to upload</span>
+                            <span className="text-slate-500">or drag and drop</span>
                         </div>
-                        <div className="text-center">
-                            <div className="flex gap-1 items-end">
-                                <span className="text-primary font-bold">Click to upload</span>
-                                <span className="text-slate-500">or drag and drop</span>
-                            </div>
-                            <p className="text-xs text-slate-500 mt-2">
-                                PDF, DOCX or XLS (max. 800×400px)
-                            </p>
-                        </div>
-                    </>
-                )}
+                        <p className="text-xs text-slate-500 mt-2">
+                            PDF, DOCX or XLS (max. 800×400px)
+                        </p>
+                    </div>
+                </>
             </div>
         </div>
     );
