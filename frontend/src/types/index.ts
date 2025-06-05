@@ -17,3 +17,10 @@ export interface ITag {
     title: string;
     tag: string;
 }
+
+export interface IChat {
+    id: number;
+    role: string;
+    content: string;
+    timeStamp: Date;
+}
