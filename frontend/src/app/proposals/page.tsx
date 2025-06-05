@@ -6,57 +6,24 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Mail, ArrowRight, Github, Calendar, Search, PlusCircle, File, Plus } from "lucide-react";
 import { useState } from "react";
-// import { WebsiteInput } from "@/components/molecule/websiteInput";
-import UploadedFileComponent from "@/components/molecule/uploadedFileComponent";
-import UploadedForm from "@/components/molecule/uploadedForm";
-import { Switch } from "@/components/ui/switch";
-import ProposalComponent from "@/components/molecule/propasalComponent";
-import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbSeparator, BreadcrumbPage } from "@/components/ui/breadcrumb";
-import SuiteComponent from "@/components/molecule/suiteComponent";
-import Stepper from "@/components/molecule/stepper";
-import RadioGroup from "@/components/molecule/radioGroup";
-import { WebsiteInput } from "@/components/molecule/websiteInput";
 import RecentProposals from "@/components/organism/RecentProposals";
 import RecentTemplates from "@/components/organism/RecentTemplates";
 import ViewToggle from "@/components/molecule/ViewToggle";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { MockRecentProposals, MockRecentTemplates, MockTags } from "@/mocks";
+import RecentTemplateComponent from "@/components/organism/RecentTemplateComponent";
+import { ITag } from "@/types";
+import RecentProposalComponent from "@/components/organism/RecentProposalComponent";
 
-const options = [
-  { value: "1-9", label: "1-9" },
-  { value: "11-50", label: "11-50" },
-  { value: "51-100", label: "51-100" },
-  { value: "101-500", label: "101-500" }
-];
-
-const steps = [
-  {
-    title: 'Requirements',
-    description: 'Share requirements & materials'
-  },
-  {
-    title: 'Depth & Tech',
-    description: 'Provide technical details about proposal'
-  },
-  {
-    title: 'Proposal Builder',
-    description: 'Customize proposal with AI'
-  }
-];
 
 export default function Home() {
-  const [website, setWebsite] = useState('');
   const [view, setView] = useState<'list' | 'grid'>('grid');
   return (
     <div className="flex flex-col gap-4 p-4">
       <div className="flex justify-between items-center">
-        <div className="">
-          <div className="text-2xl font-medium">Hey there, Hadeed!</div>
-          <div className="text-slate-600">Welcome, we're happy to have you here!</div>
+        <div className="text-wxl">
+          Proposals
         </div>
-        <Button>
-          <Plus className="w-4 h-4" />
-          Create Proposal
-        </Button>
       </div>
       <div className="flex justify-between">
         <Input
@@ -82,8 +49,11 @@ export default function Home() {
           </Select>
         </div>
       </div>
-      <RecentProposals />
-      <RecentTemplates />
+      <div className='flex overflow-x-auto gap-4 pb-4 hide-scrollbar max-w-full w-full'>
+        {MockRecentProposals.map((proposal) => (
+          <RecentProposalComponent key={proposal.id} proposal={proposal} />
+        ))}
+      </div>
     </div>
   );
 }
