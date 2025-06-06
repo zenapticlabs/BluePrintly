@@ -1,11 +1,17 @@
-import { Bell, Menu } from "lucide-react";
+'use client';
+import { AlignLeft, Bell, Menu } from "lucide-react";
 import Image from "next/image";
 import { Button } from "../ui/button";
+import { useSidebar } from "@/contexts/SidebarContext";
 
 export function TopBar() {
+    const { toggleSidebar } = useSidebar();
+
     return (
-        <div className="h-16 border-b bg-white flex items-center justify-between px-6">
-            <Menu className="w-6 h-6" />
+        <div className="h-16 border-b bg-white flex items-center justify-between px-4">
+            <button onClick={toggleSidebar} className="text-slate-800 cursor-pointer">
+                <AlignLeft className="w-6 h-6" />
+            </button>
 
             <div className="flex items-center gap-4">
                 <Button variant="ghost" size="icon" className="relative">
