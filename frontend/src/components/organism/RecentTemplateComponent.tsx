@@ -3,6 +3,7 @@ import { Dot, LucideIcon, Edit, Trash2, CheckSquare, Eye } from 'lucide-react';
 import { IRecentTemplate, RecentProposal } from '@/types';
 import { formatDistanceToNow } from 'date-fns';
 import { Checkbox } from '../ui/checkbox';
+import { useRouter } from 'next/navigation';
 
 interface RecentTemplateComponentProps {
     template: IRecentTemplate;
@@ -19,7 +20,7 @@ const RecentTemplateComponent: React.FC<RecentTemplateComponentProps> = ({
 }) => {
     const [isHovered, setIsHovered] = useState(false);
     const [isSelected, setIsSelected] = useState(false);
-
+    const router = useRouter();
     const getRelativeTime = (date: string | Date) => {
         return formatDistanceToNow(new Date(date), { addSuffix: true });
     };
@@ -29,7 +30,8 @@ const RecentTemplateComponent: React.FC<RecentTemplateComponentProps> = ({
     };
 
     const handleShow = () => {
-        onShow?.(template.id);
+        // onShow?.(template.id);
+        router.push(`/templates/view?id=${template.id}`);
     };
 
     const handleSelect = () => {
