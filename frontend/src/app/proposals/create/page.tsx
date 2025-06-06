@@ -130,9 +130,9 @@ export default function Home() {
         </div>
       </div>
 
-      <div className="flex-1 min-h-0 px-4">
-        {
-          step === 'Proposal Builder' ? (
+      {
+        step === 'Proposal Builder' ? (
+          <div className="flex-1 min-h-0 px-4">
             <div className="flex gap-3 h-full">
               <ThemeSelector open={openedSidePanel === SidePanels.THEME} onClose={() => setOpenedSidePanel('')} />
               <SectionsOrder open={openedSidePanel === SidePanels.SECTIONS} onClose={() => setOpenedSidePanel('')} />
@@ -153,7 +153,9 @@ export default function Home() {
               </div>
               <ChatHistory open={openedSidePanel === SidePanels.CHAT_HISTORY} onClose={() => setOpenedSidePanel('')} />
             </div>
-          ) : (
+          </div>
+        ) : (
+          <div className="px-4">
             <div className="shadow-sm rounded-lg">
               <div className="p-5 border-b border-slate-200 text-lg text-foreground font-semibold">
                 Requirements
@@ -236,8 +238,8 @@ export default function Home() {
                 )
               }
             </div>
-          )}
-      </div>
+          </div>
+        )}
 
       <div className="p-4">
         {
