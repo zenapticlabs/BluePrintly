@@ -53,7 +53,7 @@ export default function Home() {
   const [step, setStep] = useState<Step>('Requirements');
   const [selectedSuits, setSelectedSuits] = useState<number[]>([]);
   const [openedSidePanel, setOpenedSidePanel] = useState<string>('');
-
+  const [collapedStepper, setCollapedStepper] = useState(false);
   const handleSuitClick = (id: number) => {
     if (selectedSuits.includes(id)) {
       setSelectedSuits(selectedSuits.filter((suit) => suit !== id));
@@ -96,6 +96,11 @@ export default function Home() {
     console.log('Downloading...');
   }
 
+  const handleToProposalBuilder = () => {
+    setStep('Proposal Builder');
+    setCollapedStepper(true);
+  }
+
   return (
     <div className="h-full flex flex-col">
       <div className="p-4 flex flex-col gap-4">
@@ -114,7 +119,7 @@ export default function Home() {
             </BreadcrumbPage>
           </BreadcrumbList>
         </Breadcrumb>
-        <div className="p-5 shadow-sm rounded-lg">
+        <div className="px-5 pt-5 pb-3 shadow-sm rounded-lg">
           <Stepper steps={[{
             title: "Requirement",
             description: "Create a proposal for a new project",
@@ -125,6 +130,8 @@ export default function Home() {
             title: "Review",
             description: "Review the proposal",
           }]}
+            collapsed={collapedStepper}
+            onCollapse={() => setCollapedStepper(!collapedStepper)}
             status={steps.indexOf(step)}
           />
         </div>
@@ -256,7 +263,7 @@ export default function Home() {
               <Button variant="outline">Cancel</Button>
               <div className="flex items-center gap-2">
                 <Button variant="outline" onClick={() => setStep('Requirements')} startIcon={<ArrowLeft />}>Requirements</Button>
-                <Button endIcon={<ArrowRight />} onClick={() => setStep('Proposal Builder')}>Proposal Builder</Button>
+                <Button endIcon={<ArrowRight />} onClick={handleToProposalBuilder}>Proposal Builder</Button>
               </div>
             </div>
           )
