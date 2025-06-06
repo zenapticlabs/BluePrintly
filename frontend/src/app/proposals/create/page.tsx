@@ -15,6 +15,7 @@ import MessageBox from "@/components/organism/MessageBox";
 import ThemeSelector from "@/components/organism/ThemeSelector";
 import SectionsOrder from "@/components/organism/SectionsOrder";
 import ChatHistory from "@/components/organism/ChatHistory";
+import ProposalBuilderLoadingModal from "@/components/organism/ProposalBuilderLoadingModal";
 
 type Step = 'Requirements' | 'Depth & Tech' | 'Proposal Builder';
 const steps: Step[] = ['Requirements', 'Depth & Tech', 'Proposal Builder'];
@@ -54,6 +55,7 @@ export default function Home() {
   const [selectedSuits, setSelectedSuits] = useState<number[]>([]);
   const [openedSidePanel, setOpenedSidePanel] = useState<string>('');
   const [collapedStepper, setCollapedStepper] = useState(false);
+  const [loading, setLoading] = useState(false);
   const handleSuitClick = (id: number) => {
     if (selectedSuits.includes(id)) {
       setSelectedSuits(selectedSuits.filter((suit) => suit !== id));
@@ -269,6 +271,7 @@ export default function Home() {
           )
         }
       </div>
+      <ProposalBuilderLoadingModal loading={loading} />
     </div>
   );
 }
