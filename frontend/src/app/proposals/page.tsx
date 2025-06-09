@@ -49,9 +49,12 @@ export default function Home() {
           </Select>
         </div>
       </div>
-      <div className='flex overflow-x-auto gap-4 pb-4 hide-scrollbar max-w-full w-full'>
+      <div className={`${view === 'grid'
+        ? 'flex overflow-x-auto gap-4 pb-4'
+        : 'flex flex-col gap-4'
+        } max-w-full w-full`}>
         {MockRecentProposals.map((proposal) => (
-          <RecentProposalComponent key={proposal.id} proposal={proposal} />
+          <RecentProposalComponent key={proposal.id} proposal={proposal} viewMode={view} />
         ))}
       </div>
     </div>

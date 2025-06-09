@@ -70,9 +70,12 @@ export default function Home() {
           </Select>
         </div>
       </div>
-      <div className='flex overflow-x-auto gap-4 pb-4 hide-scrollbar max-w-full w-full'>
+      <div className={`${view === 'grid'
+          ? 'flex overflow-x-auto gap-4 pb-4'
+          : 'flex flex-col gap-4'
+        } max-w-full w-full`}>
         {MockRecentTemplates.map((template) => (
-          <RecentTemplateComponent key={template.id} template={template} />
+          <RecentTemplateComponent key={template.id} template={template} viewMode={view} />
         ))}
       </div>
     </div>

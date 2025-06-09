@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 
 interface RecentTemplateComponentProps {
     template: IRecentTemplate;
+    viewMode: 'grid' | 'list';
     onEdit?: (id: string) => void;
     onShow?: (id: string) => void;
     onSelect?: (id: string, selected: boolean) => void;
@@ -14,6 +15,7 @@ interface RecentTemplateComponentProps {
 
 const RecentTemplateComponent: React.FC<RecentTemplateComponentProps> = ({
     template,
+    viewMode,
     onEdit,
     onShow,
     onSelect
@@ -21,6 +23,7 @@ const RecentTemplateComponent: React.FC<RecentTemplateComponentProps> = ({
     const [isHovered, setIsHovered] = useState(false);
     const [isSelected, setIsSelected] = useState(false);
     const router = useRouter();
+
     const getRelativeTime = (date: string | Date) => {
         return formatDistanceToNow(new Date(date), { addSuffix: true });
     };
@@ -30,7 +33,6 @@ const RecentTemplateComponent: React.FC<RecentTemplateComponentProps> = ({
     };
 
     const handleShow = () => {
-        // onShow?.(template.id);
         router.push(`/templates/view?id=${template.id}`);
     };
 
@@ -39,6 +41,50 @@ const RecentTemplateComponent: React.FC<RecentTemplateComponentProps> = ({
         setIsSelected(newSelectedState);
         onSelect?.(template.id, newSelectedState);
     };
+
+    if (viewMode === 'list') {
+        return (
+            <div
+                className="relative group w-full"
+                onMouseEnter={() => setIsHovered(true)}
+                onMouseLeave={() => setIsHovered(false)}
+            >
+                <div className='flex items-center p-4 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 transition-colors'>
+                    {/* Checkbox */}
+                    <div className='mr-4'>
+                        <Checkbox
+                            className='bg-white'
+                            checked={isSelected}
+                            onCheckedChange={handleSelect}
+                        />
+                    </div>
+
+                    {/* Content */}
+                    <div className='flex-grow'>
+                        <div className='text-base font-semibold text-slate-800'>{template.title}</div>
+                    </div>
+
+                    {/* Actions */}
+                    <div className='flex gap-2'>
+                        <button
+                            onClick={handleShow}
+                            className="p-2 hover:bg-slate-100 rounded-lg text-slate-600 transition-colors"
+                            title="Show"
+                        >
+                            <Eye className="w-5 h-5" />
+                        </button>
+                        <button
+                            onClick={handleEdit}
+                            className="p-2 hover:bg-slate-100 rounded-lg text-slate-600 transition-colors"
+                            title="Edit"
+                        >
+                            <Edit className="w-5 h-5" />
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div
