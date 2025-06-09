@@ -42,12 +42,16 @@ export const MockRecentTemplates: IRecentTemplate[] = [
     {
         id: '1',
         title: 'Corporate Event',
-        image: 'https://via.placeholder.com/150'
+        tags: ['Finance', 'Health'],
+        image: 'https://via.placeholder.com/150',
+        createdAt: '2024-03-15'
     },
     {
         id: '2',
         title: 'Wedding Package',
-        image: 'https://via.placeholder.com/150'
+        tags: ['Tech', 'Education'],
+        image: 'https://via.placeholder.com/150',
+        createdAt: '2024-03-14'
     },
 ]
 

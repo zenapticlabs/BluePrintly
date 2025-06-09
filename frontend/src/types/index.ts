@@ -9,7 +9,9 @@ export interface RecentProposal {
 export interface IRecentTemplate {
     id: string;
     title: string;
+    tags: string[];
     image?: string;
+    createdAt: string;
 }
 
 export interface ITag {
