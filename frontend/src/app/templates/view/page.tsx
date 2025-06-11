@@ -1,11 +1,10 @@
 "use client";
 
-
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Mail, ArrowRight, Github, Calendar, Search, PlusCircle, File, Plus } from "lucide-react";
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import ViewToggle from "@/components/molecule/ViewToggle";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { MockRecentTemplates, MockTags } from "@/mocks";
@@ -14,8 +13,7 @@ import { ITag } from "@/types";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 
-
-export default function Home() {
+function TemplateContent() {
   const searchParams = useSearchParams();
   const id = searchParams.get('id');
   const template = MockRecentTemplates.find((t) => t.id === id);
@@ -54,5 +52,13 @@ export default function Home() {
         1
       </div>
     </div>
+  );
+}
+
+export default function Home() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <TemplateContent />
+    </Suspense>
   );
 }
