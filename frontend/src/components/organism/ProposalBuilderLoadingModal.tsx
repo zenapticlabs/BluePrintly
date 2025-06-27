@@ -2,10 +2,7 @@ import React from 'react';
 import {
     Dialog,
     DialogContent,
-    DialogDescription,
-    DialogHeader,
     DialogTitle,
-    DialogTrigger,
 } from "@/components/ui/dialog"
 import LoadingGif from "@/assets/loading.gif"
 import Image from 'next/image';
@@ -19,7 +16,7 @@ const ProposalBuilderLoadingModal: React.FC<ProposalBuilderLoadingModalProps> = 
 }) => {
     return (
         <Dialog open={loading}>
-            <DialogTrigger>Open</DialogTrigger>
+            <DialogTitle>Loading...</DialogTitle>
             <DialogContent showCloseButton={false}>
                 <div className='text-center flex flex-col items-center gap-2'>
                     <Image src={LoadingGif} alt='Loading' width={100} height={100} className='w-48 h-48' />
