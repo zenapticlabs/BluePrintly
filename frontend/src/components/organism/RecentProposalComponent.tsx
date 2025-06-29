@@ -6,6 +6,7 @@ import { Checkbox } from '../ui/checkbox';
 
 interface RecentProposalComponentProps {
     proposal: RecentProposal;
+    viewMode: 'grid' | 'list';
     onEdit?: (id: string) => void;
     onShow?: (id: string) => void;
     onDelete?: (id: string) => void;
@@ -14,6 +15,7 @@ interface RecentProposalComponentProps {
 
 const RecentProposalComponent: React.FC<RecentProposalComponentProps> = ({
     proposal,
+    viewMode,
     onEdit,
     onShow,
     onDelete,
@@ -43,6 +45,62 @@ const RecentProposalComponent: React.FC<RecentProposalComponentProps> = ({
         setIsSelected(newSelectedState);
         onSelect?.(proposal.id, newSelectedState);
     };
+
+    if (viewMode === 'list') {
+        return (
+            <div
+                className="relative group w-full"
+                onMouseEnter={() => setIsHovered(true)}
+                onMouseLeave={() => setIsHovered(false)}
+            >
+                <div className='flex items-center p-4 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 transition-colors'>
+                    {/* Checkbox */}
+                    <div className='mr-4'>
+                        <Checkbox
+                            className='bg-white'
+                            checked={isSelected}
+                            onCheckedChange={handleSelect}
+                        />
+                    </div>
+
+                    {/* Content */}
+                    <div className='flex-grow'>
+                        <div className='text-base font-semibold text-slate-800'>{proposal.title}</div>
+                        <div className='text-sm text-slate-600 flex items-center gap-1'>
+                            <span>{proposal.tag}</span>
+                            <span className='w-2 h-2 bg-slate-200 rounded-full mx-0.5'></span>
+                            <span>Updated {getRelativeTime(proposal.updatedAt)}</span>
+                        </div>
+                    </div>
+
+                    {/* Actions */}
+                    <div className='flex gap-2'>
+                        <button
+                            onClick={handleShow}
+                            className="p-2 hover:bg-slate-100 rounded-lg text-slate-600 transition-colors"
+                            title="Show"
+                        >
+                            <Eye className="w-5 h-5" />
+                        </button>
+                        <button
+                            onClick={handleEdit}
+                            className="p-2 hover:bg-slate-100 rounded-lg text-slate-600 transition-colors"
+                            title="Edit"
+                        >
+                            <Edit className="w-5 h-5" />
+                        </button>
+                        <button
+                            onClick={handleDelete}
+                            className="p-2 hover:bg-slate-100 rounded-lg text-red-500 transition-colors"
+                            title="Delete"
+                        >
+                            <Trash2 className="w-5 h-5" />
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div

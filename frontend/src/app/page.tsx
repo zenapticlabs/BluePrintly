@@ -73,8 +73,8 @@ export default function Home() {
           </Select>
         </div>
       </div>
-      <RecentProposals />
-      <RecentTemplates />
+      <RecentProposals viewMode={view} />
+      <RecentTemplates viewMode={view} />
     </div>
   );
 }

@@ -15,18 +15,43 @@ export const MockRecentProposals: RecentProposal[] = [
         createdAt: '2024-03-14',
         updatedAt: '2024-03-14'
     },
+    {
+        id: '3',
+        title: 'Business Proposal',
+        tag: 'Business',
+        createdAt: '2024-03-12',
+        updatedAt: '2024-03-12'
+    },
+    {
+        id: '4',
+        title: 'Event Proposal',
+        tag: 'Event',
+        createdAt: '2024-03-10',
+        updatedAt: '2024-03-10'
+    },
+    {
+        id: '5',
+        title: 'About Us',
+        tag: 'About Us',
+        createdAt: '2024-03-10',
+        updatedAt: '2024-03-10'
+    },
 ]
 
 export const MockRecentTemplates: IRecentTemplate[] = [
     {
         id: '1',
         title: 'Corporate Event',
-        image: 'https://via.placeholder.com/150'
+        tags: ['Finance', 'Health'],
+        image: 'https://via.placeholder.com/150',
+        createdAt: '2024-03-15'
     },
     {
         id: '2',
         title: 'Wedding Package',
-        image: 'https://via.placeholder.com/150'
+        tags: ['Tech', 'Education'],
+        image: 'https://via.placeholder.com/150',
+        createdAt: '2024-03-14'
     },
 ]
 

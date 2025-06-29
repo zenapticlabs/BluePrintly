@@ -3,19 +3,19 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, ArrowRight, File, LayoutDashboard, Pause, Plus, Search } from "lucide-react";
+import { ArrowLeft, ArrowRight, File, LayoutDashboard, Pause, Plus, Search, Upload } from "lucide-react";
 import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 import Stepper from "@/components/molecule/stepper";
 import UploadedForm from "@/components/molecule/uploadedForm";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import SuiteComponent from "@/components/molecule/suiteComponent";
 import { Switch } from "@/components/ui/switch";
-import WordEditor from "@/components/organism/WordEditor";
 import MessageBox from "@/components/organism/MessageBox";
 import ThemeSelector from "@/components/organism/ThemeSelector";
 import SectionsOrder from "@/components/organism/SectionsOrder";
 import ChatHistory from "@/components/organism/ChatHistory";
 import ProposalBuilderLoadingModal from "@/components/organism/ProposalBuilderLoadingModal";
+import ApryseEditor from "@/components/organism/ApryseEditor";
 
 type Step = 'Requirements' | 'Depth & Tech' | 'Proposal Builder';
 const steps: Step[] = ['Requirements', 'Depth & Tech', 'Proposal Builder'];
@@ -56,6 +56,9 @@ export default function Home() {
   const [openedSidePanel, setOpenedSidePanel] = useState<string>('');
   const [collapedStepper, setCollapedStepper] = useState(false);
   const [loading, setLoading] = useState(false);
+
+
+
   const handleSuitClick = (id: number) => {
     if (selectedSuits.includes(id)) {
       setSelectedSuits(selectedSuits.filter((suit) => suit !== id));
@@ -88,16 +91,6 @@ export default function Home() {
     }
   }
 
-  const handleSave = () => {
-    // TODO: Implement save functionality
-    console.log('Saving...');
-  }
-
-  const handleDownload = () => {
-    // TODO: Implement download functionality
-    console.log('Downloading...');
-  }
-
   const handleToProposalBuilder = () => {
     setStep('Proposal Builder');
     setCollapedStepper(true);
@@ -105,6 +98,9 @@ export default function Home() {
 
   return (
     <div className="h-full flex flex-col">
+      {/* Hidden file input */}
+
+
       <div className="p-4 flex flex-col gap-4">
         <Breadcrumb>
           <BreadcrumbList>
@@ -146,8 +142,11 @@ export default function Home() {
               <ThemeSelector open={openedSidePanel === SidePanels.THEME} onClose={() => setOpenedSidePanel('')} />
               <SectionsOrder open={openedSidePanel === SidePanels.SECTIONS} onClose={() => setOpenedSidePanel('')} />
               <div className={`flex flex-col h-full mx-auto ${openedSidePanel === '' ? 'w-[800px]' : 'w-[calc(100%-300px)]'}`}>
-                <div className="flex-1">
-                  <WordEditor onSave={handleSave} onDownload={handleDownload} />
+                <div className="flex justify-end items-center gap-2">
+
+                </div>
+                <div className="flex-1 min-h-0 relative">
+                  <ApryseEditor />
                 </div>
                 <div className="mt-4 border border-input rounded-lg p-3">
                   <MessageBox
