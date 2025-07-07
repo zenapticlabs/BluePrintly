@@ -20,6 +20,7 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
+    "@aspose/words": "^25.6.0",
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.2",
     "@nestjs/core": "^11.0.1",
@@ -40,7 +41,9 @@
     "pizzip": "^3.2.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
-    "xmldom": "^0.6.0"
+    "simple-odf": "^3.0.3",
+    "xmldom": "^0.6.0",
+    "zod": "^3.25.74"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",
