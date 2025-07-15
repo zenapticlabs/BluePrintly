@@ -8,7 +8,6 @@ import * as xml2js from 'xml2js';
 
 const libreConvert = promisify(libre.convert);
 const writeFileAsync = promisify(fs.writeFile);
-const parseXmlString = promisify(xml2js.parseString);
 
 @Injectable()
 export class DocumentsService {
@@ -78,6 +77,61 @@ export class DocumentsService {
         }
     }
 
+    async parseXmlToJson(xml: string) {
+        try {
+            const parser = new xml2js.Parser({
+                explicitArray: true,
+                explicitChildren: true,
+                preserveChildrenOrder: true,
+                xmlns: true,
+                explicitCharkey: true
+            });
+
+            const result = await parser.parseStringPromise(xml);
+
+            // Helper function to transform xml2js format to our desired format
+            const transformNode = (node: any): any => {
+                // If this is a text node
+                if (typeof node === 'string') {
+                    return { '#text': node };
+                }
+
+                const transformed: any = {
+                    name: node['#name'],
+                    children: []
+                };
+
+                // Handle attributes
+                const attributes: any = {};
+                for (const key in node.$) {
+                    attributes[key] = node.$[key];
+                }
+                if (Object.keys(attributes).length > 0) {
+                    transformed.attributes = attributes;
+                }
+
+                // Handle children and text nodes
+                if (node.$$) {
+                    transformed.children = node.$$.map((child: any) => transformNode(child));
+                }
+
+                // Handle text content
+                if (node._) {
+                    transformed.children.push({ '#text': node._ });
+                }
+
+                return transformed;
+            };
+
+            // Transform the entire document
+            const transformedJson = transformNode(result['office:document-content']);
+
+            return transformedJson;
+        } catch (error) {
+            throw new Error(`Failed to parse XML to JSON: ${error.message}`);
+        }
+    }
+
     async processDocument(file: Express.Multer.File) {
         try {
             // First convert DOCX to ODT
@@ -87,17 +141,14 @@ export class DocumentsService {
             const contentXml = await this.getXmlFromODT(convertedOdt);
 
             // Convert XML to JSON
-            const jsonData = await parseXmlString(contentXml);
-
-            // Replace "Terrible" with "Best"
-            const modifiedXml = contentXml.replace('Terrible', 'Best');
+            const jsonData = await this.parseXmlToJson(contentXml);
 
             // Convert modified XML back to DOCX
-            const docxBuffer = await this.convertXmlToDocument(modifiedXml, convertedOdt);
+            const docxBuffer = await this.convertXmlToDocument(contentXml, convertedOdt);
 
             return {
                 success: true,
-                xml: modifiedXml,
+                xml: contentXml,
                 json: jsonData,
                 docx: docxBuffer
             };
