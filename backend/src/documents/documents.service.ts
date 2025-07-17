@@ -146,6 +146,86 @@ export class DocumentsService {
         }
     }
 
+    async parseJsonToXml(json: any): Promise<string> {
+        try {
+            // Helper function to escape XML special characters
+            const escapeXml = (text: string): string => {
+                return text
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&apos;');
+            };
+
+            // Helper function to convert JSON node to XML string
+            const nodeToXml = (node: any, indent: string = ''): string => {
+                // Handle text nodes
+                if (node['#text'] !== undefined) {
+                    return escapeXml(node['#text']);
+                }
+
+                let xml = '';
+
+                // Start opening tag
+                xml += `<${node.name}`;
+
+                // Add attributes
+                if (node.attributes) {
+                    for (const attrName in node.attributes) {
+                        const attr = node.attributes[attrName];
+                        xml += ` ${attr.name}="${escapeXml(attr.value)}"`;
+                    }
+                }
+
+                // Handle empty elements
+                if (!node.children || node.children.length === 0) {
+                    xml += '/>';
+                    return xml;
+                }
+
+                // Close opening tag
+                xml += '>';
+
+                // Add children
+                let hasOnlyTextChildren = node.children.every((child: any) => child['#text'] !== undefined);
+
+                if (hasOnlyTextChildren) {
+                    // If only text children, don't add newlines
+                    node.children.forEach((child: any) => {
+                        xml += nodeToXml(child);
+                    });
+                } else {
+                    // Mixed content or element children
+                    node.children.forEach((child: any, index: number) => {
+                        if (child['#text'] !== undefined) {
+                            // Text node - add without newlines
+                            xml += nodeToXml(child);
+                        } else {
+                            // Element node
+                            xml += nodeToXml(child, indent + '  ');
+                        }
+                    });
+                }
+
+                // Add closing tag
+                xml += `</${node.name}>`;
+
+                return xml;
+            };
+
+            // Start with XML declaration
+            let xmlString = '<?xml version="1.0" encoding="UTF-8"?>\n';
+
+            // Convert the JSON structure to XML
+            xmlString += nodeToXml(json);
+
+            return xmlString;
+        } catch (error) {
+            throw new Error(`Failed to parse JSON to XML: ${error.message}`);
+        }
+    }
+
     async processDocument(file: Express.Multer.File) {
         try {
             // First convert DOCX to ODT
@@ -159,13 +239,15 @@ export class DocumentsService {
             const jsonData = await this.parseXmlToJson(contentXml);
 
             fs.writeFileSync('json.json', JSON.stringify(jsonData, null, 2));
+
+            const modifiedXml = await this.parseJsonToXml(jsonData);
+
+            fs.writeFileSync('modified.xml', modifiedXml);
             // Convert modified XML back to DOCX
-            const docxBuffer = await this.convertXmlToDocument(contentXml, convertedOdt);
+            const docxBuffer = await this.convertXmlToDocument(modifiedXml, convertedOdt);
 
             return {
                 success: true,
-                xml: contentXml,
-                json: jsonData,
                 docx: docxBuffer
             };
         } catch (error) {
