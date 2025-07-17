@@ -248,7 +248,7 @@ export class DocumentsService {
 
             return {
                 success: true,
-                docx: docxBuffer
+                docx: docxBuffer.toString('base64')
             };
         } catch (error) {
             return {
