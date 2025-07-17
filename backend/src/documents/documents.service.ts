@@ -84,14 +84,20 @@ export class DocumentsService {
                 explicitChildren: true,
                 preserveChildrenOrder: true,
                 xmlns: true,
-                explicitCharkey: true
+                explicitCharkey: true,
+                charsAsChildren: true  // This is important for mixed content
             });
 
             const result = await parser.parseStringPromise(xml);
 
             // Helper function to transform xml2js format to our desired format
             const transformNode = (node: any): any => {
-                // If this is a text node
+                // If this is a text node (when charsAsChildren is true)
+                if (node['#name'] === '__text__') {
+                    return { '#text': node._ };
+                }
+
+                // If this is a string (shouldn't happen with our parser config)
                 if (typeof node === 'string') {
                     return { '#text': node };
                 }
@@ -102,22 +108,30 @@ export class DocumentsService {
                 };
 
                 // Handle attributes
-                const attributes: any = {};
-                for (const key in node.$) {
-                    attributes[key] = node.$[key];
-                }
-                if (Object.keys(attributes).length > 0) {
+                if (node.$ && Object.keys(node.$).length > 0) {
+                    const attributes: any = {};
+                    for (const key in node.$) {
+                        const attr = node.$[key];
+                        // If attribute has namespace info
+                        if (typeof attr === 'object' && attr.name) {
+                            attributes[key] = attr;
+                        } else {
+                            // Simple attribute value
+                            attributes[key] = {
+                                name: key,
+                                value: attr,
+                                prefix: key.includes(':') ? key.split(':')[0] : '',
+                                local: key.includes(':') ? key.split(':')[1] : key,
+                                uri: ''  // URI would need to be resolved from namespace
+                            };
+                        }
+                    }
                     transformed.attributes = attributes;
                 }
 
-                // Handle children and text nodes
+                // Handle children - this now includes both elements and text nodes in order
                 if (node.$$) {
                     transformed.children = node.$$.map((child: any) => transformNode(child));
-                }
-
-                // Handle text content
-                if (node._) {
-                    transformed.children.push({ '#text': node._ });
                 }
 
                 return transformed;
@@ -140,9 +154,11 @@ export class DocumentsService {
             // Extract XML content from ODT
             const contentXml = await this.getXmlFromODT(convertedOdt);
 
+            fs.writeFileSync('content.xml', contentXml);
             // Convert XML to JSON
             const jsonData = await this.parseXmlToJson(contentXml);
 
+            fs.writeFileSync('json.json', JSON.stringify(jsonData, null, 2));
             // Convert modified XML back to DOCX
             const docxBuffer = await this.convertXmlToDocument(contentXml, convertedOdt);
 
