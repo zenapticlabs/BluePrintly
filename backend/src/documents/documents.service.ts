@@ -5,12 +5,72 @@ import * as JSZip from 'jszip';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as xml2js from 'xml2js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { ConfigService } from '@nestjs/config';
 
 const libreConvert = promisify(libre.convert);
 const writeFileAsync = promisify(fs.writeFile);
 
 @Injectable()
 export class DocumentsService {
+    private supabase: SupabaseClient;
+
+    constructor(private configService: ConfigService) {
+        const supabaseUrl = this.configService.get<string>('SUPABASE_URL');
+        const supabaseServiceKey = this.configService.get<string>('SUPABASE_SERVICE_ROLE_KEY');
+
+        if (!supabaseUrl || !supabaseServiceKey) {
+            throw new Error('Missing Supabase credentials');
+        }
+
+        this.supabase = createClient(supabaseUrl, supabaseServiceKey, {
+            auth: {
+                autoRefreshToken: false,
+                persistSession: false
+            }
+        });
+    }
+
+    private async uploadToSupabase(buffer: Buffer, fileName: string, bucketName: string): Promise<string> {
+        try {
+            // First check if the bucket exists, if not create it
+            const { data: buckets, error: bucketsError } = await this.supabase
+                .storage
+                .listBuckets();
+
+            if (bucketsError) throw bucketsError;
+
+            const bucketExists = buckets.some(bucket => bucket.name === bucketName);
+            
+            if (!bucketExists) {
+                const { error: createBucketError } = await this.supabase
+                    .storage
+                    .createBucket(bucketName, { public: true });
+                
+                if (createBucketError) throw createBucketError;
+            }
+
+            // Upload the file
+            const { data, error: uploadError } = await this.supabase.storage
+                .from(bucketName)
+                .upload(`documents/${fileName}`, buffer, {
+                    contentType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                    upsert: true
+                });
+
+            if (uploadError) throw uploadError;
+
+            // Get the public URL
+            const { data: urlData } = this.supabase.storage
+                .from(bucketName)
+                .getPublicUrl(`documents/${fileName}`);
+
+            return urlData.publicUrl;
+        } catch (error) {
+            console.error('Supabase upload error:', error);
+            throw new Error(`Failed to upload file to Supabase: ${error.message}`);
+        }
+    }
 
     async convertDocumentToOdt(file: Express.Multer.File) {
         try {
@@ -228,6 +288,14 @@ export class DocumentsService {
 
     async processDocument(file: Express.Multer.File) {
         try {
+            // Upload original file to Supabase
+            const originalFileName = `original_${Date.now()}_${file.originalname}`;
+            const originalUrl = await this.uploadToSupabase(
+                file.buffer,
+                originalFileName,
+                'documents'
+            );
+
             // First convert DOCX to ODT
             const convertedOdt = await this.convertDocumentToOdt(file);
 
@@ -240,15 +308,27 @@ export class DocumentsService {
 
             fs.writeFileSync('json.json', JSON.stringify(jsonData, null, 2));
 
-            const modifiedXml = await this.parseJsonToXml(jsonData);
+            const processedJson = await this.processJsonByAI(jsonData);
+
+            const modifiedXml = await this.parseJsonToXml(processedJson);
 
             fs.writeFileSync('modified.xml', modifiedXml);
             // Convert modified XML back to DOCX
             const docxBuffer = await this.convertXmlToDocument(modifiedXml, convertedOdt);
 
+            // Upload modified file to Supabase
+            const modifiedFileName = `modified_${Date.now()}_${file.originalname}`;
+            const modifiedUrl = await this.uploadToSupabase(
+                docxBuffer,
+                modifiedFileName,
+                'documents'
+            );
+
             return {
                 success: true,
-                docx: docxBuffer.toString('base64')
+                docx: docxBuffer.toString('base64'),
+                originalUrl,
+                modifiedUrl
             };
         } catch (error) {
             return {
@@ -256,5 +336,11 @@ export class DocumentsService {
                 error: error.message || 'Failed to modify DOCX through XML'
             };
         }
+    }
+
+    async processJsonByAI(json: any) {
+        // TODO: Implement AI processing
+        // Process the json data by AI
+        return json
     }
 }
