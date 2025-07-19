@@ -286,6 +286,73 @@ export class DocumentsService {
         }
     }
 
+    async getMetadataFromODT(odtBuffer: Buffer): Promise<any> {
+        try {
+            const zip = new JSZip();
+            const odtContents = await zip.loadAsync(odtBuffer);
+            const metaXmlFile = odtContents.file('meta.xml');
+            
+            if (!metaXmlFile) {
+                throw new Error('Could not find meta.xml in the ODT file');
+            }
+
+            const metaXml = await metaXmlFile.async('string');
+            const parser = new xml2js.Parser({
+                explicitArray: false,
+                xmlns: true
+            });
+
+            const result = await parser.parseStringPromise(metaXml);
+            const metadata = result['office:document-meta']['office:meta'];
+
+            // Helper function to safely extract value from metadata fields
+            const getValue = (field: any) => field?._?.toString() || '';
+            const getStatValue = (statName: string) => 
+                metadata?.['meta:document-statistic']?.$?.[`meta:${statName}`]?.value || '0';
+
+            // Extract user-defined fields into a map
+            const userDefinedFields = {};
+            if (Array.isArray(metadata['meta:user-defined'])) {
+                metadata['meta:user-defined'].forEach(field => {
+                    const name = field?.$?.['meta:name']?.value;
+                    if (name) {
+                        userDefinedFields[name] = getValue(field);
+                    }
+                });
+            }
+
+            return {
+                initialCreator: getValue(metadata['meta:initial-creator']),
+                creator: getValue(metadata['dc:creator']),
+                editingCycles: getValue(metadata['meta:editing-cycles']),
+                creationDate: getValue(metadata['meta:creation-date']),
+                date: getValue(metadata['dc:date']),
+                editingDuration: getValue(metadata['meta:editing-duration']),
+                generator: getValue(metadata['meta:generator']),
+                statistics: {
+                    tableCount: parseInt(getStatValue('table-count')),
+                    imageCount: parseInt(getStatValue('image-count')),
+                    objectCount: parseInt(getStatValue('object-count')),
+                    pageCount: parseInt(getStatValue('page-count')),
+                    paragraphCount: parseInt(getStatValue('paragraph-count')),
+                    wordCount: parseInt(getStatValue('word-count')),
+                    characterCount: parseInt(getStatValue('character-count')),
+                    nonWhitespaceCharacterCount: parseInt(getStatValue('non-whitespace-character-count'))
+                },
+                template: {
+                    type: metadata?.['meta:template']?.$?.['xlink:type']?.value || '',
+                    actuate: metadata?.['meta:template']?.$?.['xlink:actuate']?.value || '',
+                    title: metadata?.['meta:template']?.$?.['xlink:title']?.value || '',
+                    href: metadata?.['meta:template']?.$?.['xlink:href']?.value || ''
+                },
+                userDefined: userDefinedFields
+            };
+        } catch (error) {
+            console.warn('Failed to extract metadata:', error);
+            return {};
+        }
+    }
+
     async processDocument(file: Express.Multer.File) {
         try {
             // Upload original file to Supabase
@@ -298,6 +365,9 @@ export class DocumentsService {
 
             // First convert DOCX to ODT
             const convertedOdt = await this.convertDocumentToOdt(file);
+
+            // Extract metadata from ODT
+            const metadata = await this.getMetadataFromODT(convertedOdt);
 
             // Extract XML content from ODT
             const contentXml = await this.getXmlFromODT(convertedOdt);
@@ -328,7 +398,8 @@ export class DocumentsService {
                 success: true,
                 docx: docxBuffer.toString('base64'),
                 originalUrl,
-                modifiedUrl
+                modifiedUrl,
+                metadata // Include metadata in the response
             };
         } catch (error) {
             return {
