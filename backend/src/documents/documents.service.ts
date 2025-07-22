@@ -5,7 +5,7 @@ import * as xml2js from 'xml2js';
 import { ConfigService } from '@nestjs/config';
 import { XmlProcessorService } from './services/xml-processor.service';
 import { ConverterService } from './services/converter.service';
-import { SupabaseService } from '../shared/services/supabase.service';
+import { SupabaseStorageService } from '../shared/services/supabase-storage.service';
 
 @Injectable()
 export class DocumentsService {
@@ -13,14 +13,14 @@ export class DocumentsService {
         private configService: ConfigService,
         private xmlProcessorService: XmlProcessorService,
         private converterService: ConverterService,
-        private supabaseService: SupabaseService
+        private supabaseStorageService: SupabaseStorageService
     ) {}
 
     async processDocument(file: Express.Multer.File) {
         try {
             // Upload original file to Supabase
             const originalFileName = `original_${Date.now()}_${file.originalname}`;
-            const originalUrl = await this.supabaseService.uploadFile(
+            const originalUrl = await this.supabaseStorageService.uploadFile(
                 file.buffer,
                 originalFileName,
                 'documents'
@@ -51,7 +51,7 @@ export class DocumentsService {
 
             // Upload modified file to Supabase
             const modifiedFileName = `modified_${Date.now()}_${file.originalname}`;
-            const modifiedUrl = await this.supabaseService.uploadFile(
+            const modifiedUrl = await this.supabaseStorageService.uploadFile(
                 docxBuffer,
                 modifiedFileName,
                 'documents'
@@ -65,10 +65,8 @@ export class DocumentsService {
                 metadata // Include metadata in the response
             };
         } catch (error) {
-            return {
-                success: false,
-                error: error.message || 'Failed to modify DOCX through XML'
-            };
+            console.error('Error processing document:', error);
+            throw error;
         }
     }
 
