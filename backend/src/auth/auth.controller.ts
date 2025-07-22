@@ -7,16 +7,16 @@ export class AuthController {
     constructor(private authService: AuthService) { }
     @Post('signup')
     async signup(@Body() body: { email: string; password: string }) {
-        return this.authService.signup(body.email, body.password);
+        return this.authService.signUp(body.email, body.password);
     }
 
     @Post('signin')
     async signin(@Body() body: { email: string; password: string }) {
-        return this.authService.signin(body.email, body.password);
+        return this.authService.signIn(body.email, body.password);
     }
 
     @Post('signout')
     async signout(@Headers('Authorization') token: string) {
-        return this.authService.signout(token);
+        return this.authService.signOut(token);
     }
 }
