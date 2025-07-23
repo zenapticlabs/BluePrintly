@@ -1,15 +1,63 @@
 import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { BaseSupabaseService } from './base-supabase.service';
+import { Company } from '../../entities/company.entity';
+
+interface CompanyDetails {
+    name: string;
+    type: string;
+    industry: string;
+    employeeCount: string;
+    website: string;
+}
+
+interface UserRegistrationData {
+    email: string;
+    password: string;
+    firstName: string;
+    lastName: string;
+    company: CompanyDetails;
+}
+
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class SupabaseAuthService extends BaseSupabaseService {
-    async signUp(email: string, password: string) {
-        const { data, error } = await this.supabase.auth.signUp({
-            email,
-            password
+    constructor(
+        protected readonly configService: ConfigService,
+        @InjectRepository(Company)
+        private companyRepository: Repository<Company>,
+    ) {
+        super(configService);
+    }
+
+    async signUp(data: UserRegistrationData) {
+        // First create the auth user
+        const { data: authData, error: authError } = await this.supabase.auth.signUp({
+            email: data.email,
+            password: data.password,
+            options: {
+                data: {
+                    firstName: data.firstName,
+                    lastName: data.lastName,
+                }
+            }
         });
-        if (error) throw error;
-        return data;
+        if (authError) throw authError;
+
+        // Create company profile
+        const company = this.companyRepository.create({
+            user_id: authData.user?.id,
+            name: data.company.name,
+            type: data.company.type,
+            industry: data.company.industry,
+            employee_count: data.company.employeeCount,
+            website: data.company.website,
+        });
+        await this.companyRepository.save(company);
+
+        return authData;
     }
 
     async signIn(email: string, password: string) {
@@ -27,8 +75,21 @@ export class SupabaseAuthService extends BaseSupabaseService {
     }
 
     async getUserById(userId: string) {
-        const { data, error } = await this.supabase.auth.admin.getUserById(userId);
-        if (error) throw error;
-        return data;
+        const { data: userData, error: userError } = await this.supabase.auth.admin.getUserById(userId);
+        if (userError) throw userError;
+
+        // Get company details
+        const { data: companyData, error: companyError } = await this.supabase
+            .from('companies')
+            .select('*')
+            .eq('user_id', userId)
+            .single();
+
+        if (companyError) throw companyError;
+
+        return {
+            ...userData,
+            company: companyData
+        };
     }
-} 
+}

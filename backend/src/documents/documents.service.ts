@@ -22,7 +22,7 @@ export class DocumentsService {
             const originalFileName = `original_${Date.now()}_${file.originalname}`;
             const originalUrl = await this.supabaseStorageService.uploadFile(
                 file.buffer,
-                originalFileName,
+                originalFileName, 
                 'documents'
             );
 
