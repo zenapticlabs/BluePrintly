@@ -3,24 +3,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { BaseSupabaseService } from './base-supabase.service';
 import { Company } from '../../entities/company.entity';
-
-interface CompanyDetails {
-    name: string;
-    type: string;
-    industry: string;
-    employeeCount: string;
-    website: string;
-}
-
-interface UserRegistrationData {
-    email: string;
-    password: string;
-    firstName: string;
-    lastName: string;
-    company: CompanyDetails;
-}
-
 import { ConfigService } from '@nestjs/config';
+import { UserRegistrationData } from '../dto/user-registration.dto';
 
 @Injectable()
 export class SupabaseAuthService extends BaseSupabaseService {
@@ -54,6 +38,7 @@ export class SupabaseAuthService extends BaseSupabaseService {
             industry: data.company.industry,
             employee_count: data.company.employeeCount,
             website: data.company.website,
+            logo_url: data.company?.logoUrl // Assuming logoUrl is set after file upload
         });
         await this.companyRepository.save(company);
 

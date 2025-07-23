@@ -1,29 +1,28 @@
-import { Body, Controller, Headers, Post } from '@nestjs/common';
+import { Body, Controller, Headers, Post, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthGuard } from './auth.guard';
-
-interface CompanyDetails {
-  name: string;
-  type: string;
-  industry: string;
-  employeeCount: string;
-  website: string;
-}
-
-interface UserRegistrationData {
-  email: string;
-  password: string;
-  firstName: string;
-  lastName: string;
-  company: CompanyDetails;
-}
+import { SupabaseStorageService } from 'src/shared/services/supabase-storage.service';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { UserRegistrationData } from 'src/shared/dto/user-registration.dto';
 
 @Controller('auth')
 export class AuthController {
-    constructor(private authService: AuthService) { }
-    
+    constructor(private authService: AuthService, private supabaseStorage: SupabaseStorageService) { }
+
     @Post('signup')
-    async signup(@Body() body: UserRegistrationData) {
+    @UseInterceptors(FileInterceptor('logo')) // Assuming you're using Multer for file
+    async signup(
+        @UploadedFile() logo: Express.Multer.File,
+        @Body() body: UserRegistrationData
+    ) {
+        if (logo) {
+            const logoUrl = await this.supabaseStorage.uploadFile(
+                logo.buffer,
+                logo.originalname,
+                'company-logos'
+            );
+            body.company.logoUrl = logoUrl;
+        }
         return this.authService.signUp(body);
     }
 

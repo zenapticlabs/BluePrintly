@@ -22,4 +22,7 @@ export class Company {
 
   @Column()
   website: string;
+
+  @Column({ nullable: true })
+  logo_url: string; // URL to the company logo image
 }
