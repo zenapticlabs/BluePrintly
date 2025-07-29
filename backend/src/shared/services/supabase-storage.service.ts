@@ -1,16 +1,17 @@
 import { Injectable } from '@nestjs/common';
 import { BaseSupabaseService } from './base-supabase.service';
+import { StorageConfig, BucketName } from '../../config/storage.config';
 
 @Injectable()
 export class SupabaseStorageService extends BaseSupabaseService {
-    async uploadFile(buffer: Buffer, fileName: string, bucketName: string): Promise<string> {
+    async uploadFile(buffer: Buffer, fileName: string, bucketName: BucketName): Promise<string> {
         try {
             await this.ensureBucketExists(bucketName);
 
             // Upload the file
             const { data, error: uploadError } = await this.supabase.storage
                 .from(bucketName)
-                .upload(`documents/${fileName}`, buffer, {
+                .upload(`${StorageConfig.paths.DOCUMENTS}/${fileName}`, buffer, {
                     contentType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
                     upsert: true
                 });
@@ -20,12 +21,29 @@ export class SupabaseStorageService extends BaseSupabaseService {
             // Get the public URL
             const { data: urlData } = this.supabase.storage
                 .from(bucketName)
-                .getPublicUrl(`documents/${fileName}`);
+                .getPublicUrl(`${StorageConfig.paths.DOCUMENTS}/${fileName}`);
 
             return urlData.publicUrl;
         } catch (error) {
             console.error('Supabase upload error:', error);
             throw new Error(`Failed to upload file to Supabase: ${error.message}`);
+        }
+    }
+
+    async downloadFile(bucketName: string, fileName: string): Promise<Buffer> {
+        try {
+            const { data, error } = await this.supabase.storage
+                .from(bucketName)
+                .download(`documents/${fileName}`);
+
+            if (error) throw error;
+
+            // Convert Blob to Buffer
+            const arrayBuffer = await data.arrayBuffer();
+            return Buffer.from(arrayBuffer);
+        } catch (error) {
+            console.error('Supabase download error:', error);
+            throw new Error(`Failed to download file from Supabase: ${error.message}`);
         }
     }
 

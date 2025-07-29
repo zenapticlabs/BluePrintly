@@ -9,11 +9,19 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Company } from './entities/company.entity';
 import { PastProposal } from './entities/past-proposal.entity';
 import { OnboardingModule } from './onboarding/onboarding.module';
+import { BullModule } from '@nestjs/bull';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+    }),
+    BullModule.forRoot({
+      redis: {
+        host: process.env.REDIS_HOST || 'localhost',
+        port: parseInt(process.env.REDIS_PORT || '6379'),
+        password: process.env.REDIS_PASSWORD || 'password',
+      },
     }),
     SharedModule,
     AuthModule,

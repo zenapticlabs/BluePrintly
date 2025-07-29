@@ -9,6 +9,6 @@ import { ConverterService } from './services/converter.service';
   imports: [ConfigModule],
   controllers: [DocumentsController],
   providers: [DocumentsService, XmlProcessorService, ConverterService],
-  exports: [DocumentsService]
+  exports: [DocumentsService, XmlProcessorService, ConverterService]
 })
 export class DocumentsModule {}

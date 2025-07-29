@@ -6,6 +6,8 @@ import { Company } from 'src/entities/company.entity';
 import { PastProposal } from 'src/entities/past-proposal.entity';
 import { Repository } from 'typeorm';
 import { SupabaseStorageService } from 'src/shared/services/supabase-storage.service';
+import { InjectQueue } from '@nestjs/bull';
+import { Queue } from 'bull';
 
 @Injectable()
 export class OnboardingService {
@@ -15,6 +17,8 @@ export class OnboardingService {
         @InjectRepository(PastProposal)
         private pastProposalRepository: Repository<PastProposal>,
         private supabaseStorageService: SupabaseStorageService,
+        @InjectQueue('past-proposal-processing')
+        private pastProposalQueue: Queue,
     ) { }
 
     async createCompany(createCompanyDto: CreateCompanyDto) {
@@ -33,7 +37,6 @@ export class OnboardingService {
         const jobIds: string[] = [];
         const createdProposals: PastProposal[] = [];
 
-        console.log(pastProposalUploadData);
         // Process each file
         for (const file of pastProposalUploadData.files) {
             try {
@@ -61,13 +64,20 @@ export class OnboardingService {
                 const jobId = `job_${savedProposal.id}_${Date.now()}`;
                 jobIds.push(jobId);
 
-                // TODO: 4. Trigger background processing job
-                // This would typically involve:
-                // - Queuing a job with a job queue (Bull, BullMQ, etc.)
-                // - The job would process the document content
-                // - Update the past_proposal record with processed content_json
-                // - Update status to 'completed' or 'failed'
-                
+                // 4. Trigger background processing job
+                await this.pastProposalQueue.add('process-past-proposal', {
+                    proposalId: savedProposal.id,
+                    fileUrl: fileUrl,
+                    fileName: fileName,
+                }, {
+                    jobId: jobId,
+                    attempts: 3,
+                    backoff: {
+                        type: 'exponential',
+                        delay: 2000,
+                    },
+                });
+
                 console.log(`Queued processing job ${jobId} for proposal ${savedProposal.id}`);
 
             } catch (error) {
@@ -94,5 +104,34 @@ export class OnboardingService {
             where: { userId },
             order: { createdAt: 'DESC' }
         });
+    }
+
+    async getPastProposalStatus(proposalId: string) {
+        return await this.pastProposalRepository.findOne({
+            where: { id: proposalId },
+            select: ['id', 'filename', 'status', 'createdAt']
+        });
+    }
+
+    async getPastProposalContent(proposalId: string) {
+        const proposal = await this.pastProposalRepository.findOne({
+            where: { id: proposalId },
+        });
+
+        if (!proposal) {
+            throw new Error('Past proposal not found');
+        }
+
+        if (proposal.status !== 'completed') {
+            throw new Error('Past proposal processing not completed yet');
+        }
+
+        return {
+            id: proposal.id,
+            filename: proposal.filename,
+            contentJson: proposal.contentJson,
+            status: proposal.status,
+            createdAt: proposal.createdAt
+        };
     }
 }
