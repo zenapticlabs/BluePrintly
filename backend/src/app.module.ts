@@ -7,6 +7,7 @@ import { DocumentsModule } from './documents/documents.module';
 import { SharedModule } from './shared/shared.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Company } from './entities/company.entity';
+import { PastProposal } from './entities/past-proposal.entity';
 import { OnboardingModule } from './onboarding/onboarding.module';
 
 @Module({
@@ -24,10 +25,10 @@ import { OnboardingModule } from './onboarding/onboarding.module';
       username: process.env.SUPABASE_USERNAME,
       password: process.env.SUPABASE_PASSWORD,
       database: process.env.SUPABASE_DATABASE,
-      entities: [Company],
+      entities: [Company, PastProposal],
       synchronize: true
     }),
-    TypeOrmModule.forFeature([Company]),
+    TypeOrmModule.forFeature([Company, PastProposal]),
     OnboardingModule,
   ],
   controllers: [AppController],

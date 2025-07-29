@@ -1,6 +1,8 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Post, UploadedFiles, UseInterceptors, Get, Param } from '@nestjs/common';
+import { FilesInterceptor } from '@nestjs/platform-express';
 import { OnboardingService } from './onboarding.service';
 import { CreateCompanyDto } from './dto/create-company.dto';
+import { PastProposalUploadDto } from './dto/past-proposal-upload.dto';
 
 @Controller('onboarding')
 export class OnboardingController {
@@ -12,5 +14,18 @@ export class OnboardingController {
   async createCompany(@Body() createCompanyDto: CreateCompanyDto) {
     const company = await this.onboardingService.createCompany(createCompanyDto);
     return company;
+  }
+
+  @Post('past-proposals')
+  @UseInterceptors(FilesInterceptor('files'))
+  async uploadPastProposals(
+    @UploadedFiles() files: Express.Multer.File[],
+    @Body('userId') userId: string,
+  ) {
+    const pastProposalUploadDto: PastProposalUploadDto = {
+      files,
+      userId,
+    };
+    return await this.onboardingService.uploadPastProposals(pastProposalUploadDto);
   }
 }
