@@ -4,19 +4,17 @@ import { Repository } from 'typeorm';
 import { BaseSupabaseService } from './base-supabase.service';
 import { Company } from '../../entities/company.entity';
 import { ConfigService } from '@nestjs/config';
-import { UserRegistrationData } from '../dto/user-registration.dto';
+import { UserRegistrationDto } from 'src/auth/dto/user-registration.dto';
 
 @Injectable()
 export class SupabaseAuthService extends BaseSupabaseService {
     constructor(
         protected readonly configService: ConfigService,
-        @InjectRepository(Company)
-        private companyRepository: Repository<Company>,
     ) {
         super(configService);
     }
 
-    async signUp(data: UserRegistrationData) {
+    async signUp(data: UserRegistrationDto) {
         // First create the auth user
         const { data: authData, error: authError } = await this.supabase.auth.signUp({
             email: data.email,
@@ -29,18 +27,6 @@ export class SupabaseAuthService extends BaseSupabaseService {
             }
         });
         if (authError) throw authError;
-
-        // Create company profile
-        const company = this.companyRepository.create({
-            user_id: authData.user?.id,
-            name: data.company.name,
-            type: data.company.type,
-            industry: data.company.industry,
-            employee_count: data.company.employeeCount,
-            website: data.company.website,
-            logo_url: data.company?.logoUrl // Assuming logoUrl is set after file upload
-        });
-        await this.companyRepository.save(company);
 
         return authData;
     }
@@ -62,19 +48,6 @@ export class SupabaseAuthService extends BaseSupabaseService {
     async getUserById(userId: string) {
         const { data: userData, error: userError } = await this.supabase.auth.admin.getUserById(userId);
         if (userError) throw userError;
-
-        // Get company details
-        const { data: companyData, error: companyError } = await this.supabase
-            .from('companies')
-            .select('*')
-            .eq('user_id', userId)
-            .single();
-
-        if (companyError) throw companyError;
-
-        return {
-            ...userData,
-            company: companyData
-        };
+        return userData;
     }
 }

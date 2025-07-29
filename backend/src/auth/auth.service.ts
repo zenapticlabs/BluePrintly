@@ -1,27 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { SupabaseAuthService } from '../shared/services/supabase-auth.service';
-
-interface CompanyDetails {
-  name: string;
-  type: string;
-  industry: string;
-  employeeCount: string;
-  website: string;
-}
-
-interface UserRegistrationData {
-  email: string;
-  password: string;
-  firstName: string;
-  lastName: string;
-  company: CompanyDetails;
-}
+import { UserRegistrationDto } from './dto/user-registration.dto';
 
 @Injectable()
 export class AuthService {
     constructor(private supabaseAuthService: SupabaseAuthService) { }
 
-    async signUp(data: UserRegistrationData) {
+    async signUp(data: UserRegistrationDto) {
         return this.supabaseAuthService.signUp(data);
     }
 

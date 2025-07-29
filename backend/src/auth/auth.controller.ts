@@ -1,33 +1,23 @@
-import { Body, Controller, Headers, Post, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Headers, Post, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { AuthGuard } from './auth.guard';
 import { SupabaseStorageService } from 'src/shared/services/supabase-storage.service';
-import { FileInterceptor } from '@nestjs/platform-express';
-import { UserRegistrationData } from 'src/shared/dto/user-registration.dto';
+import { UserRegistrationDto } from './dto/user-registration.dto';
+import { SignInDto } from './dto/sign-in.dto';
 
 @Controller('auth')
+@UsePipes(new ValidationPipe({ transform: true }))
 export class AuthController {
     constructor(private authService: AuthService, private supabaseStorage: SupabaseStorageService) { }
 
     @Post('signup')
-    @UseInterceptors(FileInterceptor('logo')) // Assuming you're using Multer for file
     async signup(
-        @UploadedFile() logo: Express.Multer.File,
-        @Body() body: UserRegistrationData
+        @Body() body: UserRegistrationDto
     ) {
-        if (logo) {
-            const logoUrl = await this.supabaseStorage.uploadFile(
-                logo.buffer,
-                logo.originalname,
-                'company-logos'
-            );
-            body.company.logoUrl = logoUrl;
-        }
         return this.authService.signUp(body);
     }
 
     @Post('signin')
-    async signin(@Body() body: { email: string; password: string }) {
+    async signin(@Body() body: SignInDto) {
         return this.authService.signIn(body.email, body.password);
     }
 
