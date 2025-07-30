@@ -8,6 +8,7 @@ import { SharedModule } from 'src/shared/shared.module';
 import { BullModule } from '@nestjs/bull';
 import { PastProposalProcessingProcessor } from './past-proposal-processing.processor';
 import { DocumentsModule } from 'src/documents/documents.module';
+import { FilesModule } from 'src/files/files.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { DocumentsModule } from 'src/documents/documents.module';
     }),
     SharedModule,
     DocumentsModule,
+    FilesModule,
   ],
   controllers: [OnboardingController],
   providers: [OnboardingService, PastProposalProcessingProcessor],

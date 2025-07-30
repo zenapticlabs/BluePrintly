@@ -4,9 +4,9 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { Job } from "bull";
 import { PastProposal } from "src/entities/past-proposal.entity";
 import { Repository } from "typeorm";
-import { SupabaseStorageService } from "src/shared/services/supabase-storage.service";
 import { ConverterService } from "src/documents/services/converter.service";
 import { XmlProcessorService } from "src/documents/services/xml-processor.service";
+import { FilesService } from "src/files/files.service";
 
 @Injectable()
 @Processor('past-proposal-processing')
@@ -16,7 +16,7 @@ export class PastProposalProcessingProcessor {
         private pastProposalRepository: Repository<PastProposal>,
         private converterService: ConverterService,
         private xmlProcessorService: XmlProcessorService,
-        private supabaseStorageService: SupabaseStorageService,
+        private filesService: FilesService,
     ) { }
 
     @Process('process-past-proposal')
@@ -30,7 +30,7 @@ export class PastProposalProcessingProcessor {
             });
 
             // Download the file from Supabase
-            const fileData = await this.supabaseStorageService.downloadFile('past-proposals', fileName);
+            const fileData = await this.filesService.downloadFile('past-proposals', fileName);
 
             // Create a File-like object that matches Express.Multer.File
             const fileObject = {

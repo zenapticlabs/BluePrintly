@@ -37,25 +37,15 @@ export class OnboardingService {
         const jobIds: string[] = [];
         const createdProposals: PastProposal[] = [];
 
-        // Process each file
-        for (const file of pastProposalUploadData.files) {
+        // Process each URL
+        for (const url of pastProposalUploadData.urls) {
             try {
-                // 1. Upload file to Supabase Storage
-                const fileName = `${Date.now()}-${file.originalname}`;
-                const fileUrl = await this.supabaseStorageService.uploadFile(
-                    file.buffer,
-                    fileName,
-                    'past-proposals'
-                );
-
-                // 2. Create past_proposals entry with 'pending' status
+                // Create past_proposals entry with 'pending' status
                 const pastProposal = new PastProposal();
                 pastProposal.userId = pastProposalUploadData.userId;
-                pastProposal.filename = file.originalname;
-                pastProposal.fileUrl = fileUrl;
-                pastProposal.fileType = file.mimetype;
-                pastProposal.fileSize = file.size;
-                pastProposal.status = 'pending';
+                                 pastProposal.filename = url.split('/').pop() || 'unknown';
+                 pastProposal.fileUrl = url;
+                 pastProposal.status = 'pending';
 
                 const savedProposal = await this.pastProposalRepository.save(pastProposal);
                 createdProposals.push(savedProposal);
@@ -67,8 +57,8 @@ export class OnboardingService {
                 // 4. Trigger background processing job
                 await this.pastProposalQueue.add('process-past-proposal', {
                     proposalId: savedProposal.id,
-                    fileUrl: fileUrl,
-                    fileName: fileName,
+                    fileUrl: url,
+                    fileName: url.split('/').pop() || 'unknown',
                 }, {
                     jobId: jobId,
                     attempts: 3,
@@ -81,7 +71,7 @@ export class OnboardingService {
                 console.log(`Queued processing job ${jobId} for proposal ${savedProposal.id}`);
 
             } catch (error) {
-                console.error(`Failed to process file ${file.originalname}:`, error);
+                console.error(`Failed to process URL ${url}:`, error);
                 // Continue processing other files even if one fails
             }
         }

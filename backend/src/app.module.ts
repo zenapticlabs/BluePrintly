@@ -10,6 +10,7 @@ import { Company } from './entities/company.entity';
 import { PastProposal } from './entities/past-proposal.entity';
 import { OnboardingModule } from './onboarding/onboarding.module';
 import { BullModule } from '@nestjs/bull';
+import { FilesModule } from './files/files.module';
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { BullModule } from '@nestjs/bull';
     }),
     TypeOrmModule.forFeature([Company, PastProposal]),
     OnboardingModule,
+    FilesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

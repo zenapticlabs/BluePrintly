@@ -14,11 +14,6 @@ export class PastProposal {
   @Column({ name: 'file_url', type: 'text' })
   fileUrl: string;
 
-  @Column({ name: 'file_type', type: 'text', nullable: true })
-  fileType: string;
-
-  @Column({ name: 'file_size', type: 'integer', nullable: true })
-  fileSize: number;
 
   @Column({ name: 'content_json', type: 'jsonb', nullable: true })
   contentJson: any;

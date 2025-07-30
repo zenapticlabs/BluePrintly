@@ -17,15 +17,10 @@ export class OnboardingController {
   }
 
   @Post('past-proposals')
-  @UseInterceptors(FilesInterceptor('files'))
+
   async uploadPastProposals(
-    @UploadedFiles() files: Express.Multer.File[],
-    @Body('userId') userId: string,
+    @Body() pastProposalUploadDto: PastProposalUploadDto
   ) {
-    const pastProposalUploadDto: PastProposalUploadDto = {
-      files,
-      userId,
-    };
     return await this.onboardingService.uploadPastProposals(pastProposalUploadDto);
   }
 }
