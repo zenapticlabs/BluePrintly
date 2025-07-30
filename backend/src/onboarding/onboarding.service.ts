@@ -10,6 +10,7 @@ import { SupabaseStorageService } from 'src/shared/services/supabase-storage.ser
 import { InjectQueue } from '@nestjs/bull';
 import { Queue } from 'bull';
 import { Portfolio } from 'src/entities/portfolio.entity';
+import { OnboardingStatus, OnboardingStep, StepStatus } from 'src/entities/onboarding-status.entity';
 
 @Injectable()
 export class OnboardingService {
@@ -20,12 +21,65 @@ export class OnboardingService {
         private pastProposalRepository: Repository<PastProposal>,
         @InjectRepository(Portfolio)
         private portfolioRepository: Repository<Portfolio>,
+        @InjectRepository(OnboardingStatus)
+        private onboardingStatusRepository: Repository<OnboardingStatus>,
         private supabaseStorageService: SupabaseStorageService,
         @InjectQueue('past-proposal-processing')
         private pastProposalQueue: Queue,
     ) { }
 
+    private async getOrCreateOnboardingStatus(userId: string): Promise<OnboardingStatus> {
+        let status = await this.onboardingStatusRepository.findOne({
+            where: { userId }
+        });
+
+        if (!status) {
+            status = new OnboardingStatus();
+            status.userId = userId;
+            status = await this.onboardingStatusRepository.save(status);
+        }
+
+        return status;
+    }
+
+    private async updateOnboardingStep(userId: string, step: OnboardingStep, stepStatus: StepStatus) {
+        const status = await this.getOrCreateOnboardingStatus(userId);
+        
+        // Update the specific step status
+        switch (step) {
+            case 'company':
+                status.companyStatus = stepStatus;
+                break;
+            case 'past-proposals':
+                status.pastProposalsStatus = stepStatus;
+                break;
+            case 'portfolio':
+                status.portfolioStatus = stepStatus;
+                break;
+        }
+
+        // Update current step if needed
+        if (stepStatus === 'completed') {
+            if (step === 'company' && status.currentStep === 'company') {
+                status.currentStep = 'past-proposals';
+            } else if (step === 'past-proposals' && status.currentStep === 'past-proposals') {
+                status.currentStep = 'portfolio';
+            } else if (step === 'portfolio') {
+                status.isCompleted = true;
+            }
+        }
+
+        return await this.onboardingStatusRepository.save(status);
+    }
+
+    async getOnboardingStatus(userId: string): Promise<OnboardingStatus> {
+        return await this.getOrCreateOnboardingStatus(userId);
+    }
+
     async createCompany(createCompanyDto: CreateCompanyDto) {
+        // Update status to in_progress
+        await this.updateOnboardingStep(createCompanyDto.userId, 'company', 'in_progress');
+
         const company = new Company();
         company.user_id = createCompanyDto.userId;
         company.name = createCompanyDto.name;
@@ -34,10 +88,18 @@ export class OnboardingService {
         company.employee_count = createCompanyDto.employeeCount;
         company.website = createCompanyDto.website;
 
-        return await this.companyRepository.save(company);
+        const savedCompany = await this.companyRepository.save(company);
+
+        // Update status to completed
+        await this.updateOnboardingStep(createCompanyDto.userId, 'company', 'completed');
+
+        return savedCompany;
     }
 
     async uploadPastProposals(pastProposalUploadData: PastProposalUploadDto) {
+        // Update status to in_progress
+        await this.updateOnboardingStep(pastProposalUploadData.userId, 'past-proposals', 'in_progress');
+
         const jobIds: string[] = [];
         const createdProposals: PastProposal[] = [];
 
@@ -79,6 +141,9 @@ export class OnboardingService {
                 // Continue processing other files even if one fails
             }
         }
+
+        // Update status to completed since we've queued all files for processing
+        await this.updateOnboardingStep(pastProposalUploadData.userId, 'past-proposals', 'completed');
 
         return {
             userId: pastProposalUploadData.userId,
@@ -130,6 +195,9 @@ export class OnboardingService {
     }
 
     async uploadPortfolio(portfolioUploadDto: PortfolioUploadDto) {
+        // Update status to in_progress
+        await this.updateOnboardingStep(portfolioUploadDto.userId, 'portfolio', 'in_progress');
+
         const createdPortfolios: Portfolio[] = [];
 
         // Process each file info
@@ -152,6 +220,9 @@ export class OnboardingService {
                 // Continue processing other files even if one fails
             }
         }
+
+        // Update status to completed
+        await this.updateOnboardingStep(portfolioUploadDto.userId, 'portfolio', 'completed');
 
         return {
             userId: portfolioUploadDto.userId,

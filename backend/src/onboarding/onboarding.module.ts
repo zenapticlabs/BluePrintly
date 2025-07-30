@@ -5,6 +5,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Company } from 'src/entities/company.entity';
 import { PastProposal } from 'src/entities/past-proposal.entity';
 import { Portfolio } from 'src/entities/portfolio.entity';
+import { OnboardingStatus } from 'src/entities/onboarding-status.entity';
 import { SharedModule } from 'src/shared/shared.module';
 import { BullModule } from '@nestjs/bull';
 import { PastProposalProcessingProcessor } from './past-proposal-processing.processor';
@@ -13,7 +14,7 @@ import { FilesModule } from 'src/files/files.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Company, PastProposal, Portfolio]),
+    TypeOrmModule.forFeature([Company, PastProposal, Portfolio, OnboardingStatus]),
     BullModule.registerQueue({
       name: 'past-proposal-processing',
     }),

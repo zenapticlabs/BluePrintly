@@ -1,4 +1,4 @@
-import { Body, Controller, Post, UploadedFiles, UseInterceptors, Get, Param } from '@nestjs/common';
+import { Body, Controller, Post, UploadedFiles, UseInterceptors, Get, Param, Query } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { OnboardingService } from './onboarding.service';
 import { CreateCompanyDto } from './dto/create-company.dto';
@@ -30,5 +30,10 @@ export class OnboardingController {
     @Body() portfolioUploadDto: PortfolioUploadDto
   ) {
     return await this.onboardingService.uploadPortfolio(portfolioUploadDto);
+  }
+
+  @Get('status')
+  async getOnboardingStatus(@Query('userId') userId: string) {
+    return await this.onboardingService.getOnboardingStatus(userId);
   }
 }
