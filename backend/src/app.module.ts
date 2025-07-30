@@ -11,6 +11,7 @@ import { PastProposal } from './entities/past-proposal.entity';
 import { OnboardingModule } from './onboarding/onboarding.module';
 import { BullModule } from '@nestjs/bull';
 import { FilesModule } from './files/files.module';
+import { Portfolio } from './entities/portfolio.entity';
 
 @Module({
   imports: [
@@ -34,10 +35,10 @@ import { FilesModule } from './files/files.module';
       username: process.env.SUPABASE_USERNAME,
       password: process.env.SUPABASE_PASSWORD,
       database: process.env.SUPABASE_DATABASE,
-      entities: [Company, PastProposal],
+      entities: [Company, PastProposal, Portfolio],
       synchronize: true
     }),
-    TypeOrmModule.forFeature([Company, PastProposal]),
+    TypeOrmModule.forFeature([Company, PastProposal, Portfolio]),
     OnboardingModule,
     FilesModule,
   ],

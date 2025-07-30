@@ -3,6 +3,7 @@ import { FilesInterceptor } from '@nestjs/platform-express';
 import { OnboardingService } from './onboarding.service';
 import { CreateCompanyDto } from './dto/create-company.dto';
 import { PastProposalUploadDto } from './dto/past-proposal-upload.dto';
+import { PortfolioUploadDto } from './dto/portfolio-upload.dto';
 
 @Controller('onboarding')
 export class OnboardingController {
@@ -22,5 +23,12 @@ export class OnboardingController {
     @Body() pastProposalUploadDto: PastProposalUploadDto
   ) {
     return await this.onboardingService.uploadPastProposals(pastProposalUploadDto);
+  }
+
+  @Post('portfolio')
+  async uploadPortfolio(
+    @Body() portfolioUploadDto: PortfolioUploadDto
+  ) {
+    return await this.onboardingService.uploadPortfolio(portfolioUploadDto);
   }
 }

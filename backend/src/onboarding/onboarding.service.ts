@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { CreateCompanyDto } from './dto/create-company.dto';
 import { PastProposalUploadDto } from './dto/past-proposal-upload.dto';
+import { PortfolioUploadDto } from './dto/portfolio-upload.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Company } from 'src/entities/company.entity';
 import { PastProposal } from 'src/entities/past-proposal.entity';
@@ -8,6 +9,7 @@ import { Repository } from 'typeorm';
 import { SupabaseStorageService } from 'src/shared/services/supabase-storage.service';
 import { InjectQueue } from '@nestjs/bull';
 import { Queue } from 'bull';
+import { Portfolio } from 'src/entities/portfolio.entity';
 
 @Injectable()
 export class OnboardingService {
@@ -16,6 +18,8 @@ export class OnboardingService {
         private companyRepository: Repository<Company>,
         @InjectRepository(PastProposal)
         private pastProposalRepository: Repository<PastProposal>,
+        @InjectRepository(Portfolio)
+        private portfolioRepository: Repository<Portfolio>,
         private supabaseStorageService: SupabaseStorageService,
         @InjectQueue('past-proposal-processing')
         private pastProposalQueue: Queue,
@@ -122,6 +126,43 @@ export class OnboardingService {
             contentJson: proposal.contentJson,
             status: proposal.status,
             createdAt: proposal.createdAt
+        };
+    }
+
+    async uploadPortfolio(portfolioUploadDto: PortfolioUploadDto) {
+        const createdPortfolios: Portfolio[] = [];
+
+        // Process each file info
+        for (const fileInfo of portfolioUploadDto.urls) {
+            try {
+                // Create portfolio entry
+                const portfolio = new Portfolio();
+                portfolio.userId = portfolioUploadDto.userId;
+                portfolio.filename = fileInfo.filename;
+                portfolio.fileUrl = fileInfo.fileUrl;
+                portfolio.fileType = fileInfo.fileType;
+
+                const savedPortfolio = await this.portfolioRepository.save(portfolio);
+                createdPortfolios.push(savedPortfolio);
+
+                console.log(`Created portfolio entry ${savedPortfolio.id}`);
+
+            } catch (error) {
+                console.error(`Failed to process file ${fileInfo.filename}:`, error);
+                // Continue processing other files even if one fails
+            }
+        }
+
+        return {
+            userId: portfolioUploadDto.userId,
+            processedFiles: createdPortfolios.length,
+            portfolios: createdPortfolios.map(portfolio => ({
+                id: portfolio.id,
+                filename: portfolio.filename,
+                fileUrl: portfolio.fileUrl,
+                fileType: portfolio.fileType,
+                createdAt: portfolio.createdAt
+            }))
         };
     }
 }
