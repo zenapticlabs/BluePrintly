@@ -12,6 +12,7 @@ import { OnboardingModule } from './onboarding/onboarding.module';
 import { BullModule } from '@nestjs/bull';
 import { FilesModule } from './files/files.module';
 import { Portfolio } from './entities/portfolio.entity';
+import { OnboardingStatus } from './entities/onboarding-status.entity';
 
 @Module({
   imports: [
@@ -35,10 +36,10 @@ import { Portfolio } from './entities/portfolio.entity';
       username: process.env.SUPABASE_USERNAME,
       password: process.env.SUPABASE_PASSWORD,
       database: process.env.SUPABASE_DATABASE,
-      entities: [Company, PastProposal, Portfolio],
+      entities: [Company, PastProposal, Portfolio, OnboardingStatus],
       synchronize: true
     }),
-    TypeOrmModule.forFeature([Company, PastProposal, Portfolio]),
+    TypeOrmModule.forFeature([Company, PastProposal, Portfolio, OnboardingStatus]),
     OnboardingModule,
     FilesModule,
   ],
